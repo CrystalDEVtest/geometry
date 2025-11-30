@@ -12,9 +12,32 @@ class GeometryDash {
         this.highScore = localStorage.getItem('geometryDashHighScore') || 0;
         this.highScoreElement.textContent = `Рекорд: ${this.highScore}`;
         this.setupTelegramAuth();
+
+        this.checkAuthStatus();
+        this.setupAuthButton();
     }
     
       
+    checkAuthStatus() {
+        const savedUser = localStorage.getItem('tg_user');
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
+            console.log('Авторизован как:', user.first_name);
+            this.hideAuthButton();
+        }
+    }
+
+    setupAuthButton() {
+        // Кнопка уже встроена в HTML через Telegram Widget
+    }
+
+    hideAuthButton() {
+        const authSection = document.getElementById('authSection');
+        if (authSection) {
+            authSection.style.display = 'none';
+        }
+    }
+
     setupTelegramAuth() {
         // Проверяем авторизацию при старте
         const savedUser = localStorage.getItem('tg_user');
