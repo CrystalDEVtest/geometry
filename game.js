@@ -326,31 +326,123 @@ class GeometryDash {
     }
     
     draw() {
-        // Очистка
-        this.ctx.fillStyle = '#87CEEB';
+        // ЯРКИЙ ФОН с градиентом
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+        gradient.addColorStop(0, '#64B5F6'); // Яркий голубой
+        gradient.addColorStop(1, '#BA68C8'); // Фиолетовый
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Земля
-        this.ctx.fillStyle = '#8B4513';
+    
+        // СОЛНЦЕ
+        this.ctx.fillStyle = '#FFEB3B';
+        this.ctx.beginPath();
+        this.ctx.arc(this.canvas.width - 100, 100, 40, 0, Math.PI * 2);
+        this.ctx.fill();
+    
+        // ОБЛАКА
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        this.ctx.beginPath();
+        this.ctx.arc(200, 80, 30, 0, Math.PI * 2);
+        this.ctx.arc(230, 70, 25, 0, Math.PI * 2);
+        this.ctx.arc(260, 80, 30, 0, Math.PI * 2);
+        this.ctx.fill();
+    
+        // ЯРКАЯ ЗЕМЛЯ
+        const groundGradient = this.ctx.createLinearGradient(0, this.ground.y, 0, this.ground.y + this.ground.height);
+        groundGradient.addColorStop(0, '#81C784'); // Ярко-зеленый
+        groundGradient.addColorStop(1, '#4CAF50'); // Зеленый
+        this.ctx.fillStyle = groundGradient;
         this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
+    
+        // ТРАВА
+        this.ctx.fillStyle = '#2E7D32';
+        this.ctx.fillRect(0, this.ground.y - 10, this.canvas.width, 10);
         
-        // Препятствия
+        // ТРАВКА (декорации)
+        this.ctx.fillStyle = '#388E3C';
+        for (let i = 0; i < 10; i++) {
+            const x = (i * 100) % this.canvas.width;
+            this.ctx.fillRect(x, this.ground.y - 15, 3, 15);
+            this.ctx.fillRect(x + 20, this.ground.y - 20, 3, 20);
+            this.ctx.fillRect(x + 40, this.ground.y - 12, 3, 12);
+        }
+    
+        // ЯРКИЕ ПРЕПЯТСТВИЯ
         this.obstacles.forEach(obstacle => {
-            this.ctx.fillStyle = obstacle.color;
-            this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            const obstacleGradient = this.ctx.createLinearGradient(
+                obstacle.x, obstacle.y, 
+                obstacle.x, obstacle.y + obstacle.height
+            );
+            obstacleGradient.addColorStop(0, '#FF5722'); // Ярко-оранжевый
+            obstacleGradient.addColorStop(1, '#E64A19'); // Оранжевый
+            
+            this.ctx.fillStyle = obstacleGradient;
+            
+            // Шипы с эффектом
+            this.ctx.beginPath();
+            this.ctx.moveTo(obstacle.x, obstacle.y + obstacle.height);
+            this.ctx.lineTo(obstacle.x + obstacle.width / 2, obstacle.y);
+            this.ctx.lineTo(obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+            this.ctx.closePath();
+            this.ctx.fill();
+            
+            // Блеск на шипах
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
         });
+    
+        // ЯРКИЙ ИГРОК с градиентом
+        const playerGradient = this.ctx.createLinearGradient(
+            this.player.x, this.player.y,
+            this.player.x + this.player.width, this.player.y + this.player.height
+        );
+        playerGradient.addColorStop(0, '#FF4081'); // Розовый
+        playerGradient.addColorStop(1, '#E91E63'); // Ярко-розовый
         
-        // Игрок
-        this.ctx.fillStyle = this.player.color;
+        this.ctx.fillStyle = playerGradient;
         this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
         
-        // Частицы
+        // ДЕТАЛИ ИГРОКА
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.fillRect(this.player.x + 10, this.player.y + 10, 8, 8); // Глаз 1
+        this.ctx.fillRect(this.player.x + 25, this.player.y + 10, 8, 8); // Глаз 2
+        
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(this.player.x + 12, this.player.y + 12, 4, 4); // Зрачок 1
+        this.ctx.fillRect(this.player.x + 27, this.player.y + 12, 4, 4); // Зрачок 2
+        
+        // УЛЫБКА
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(this.player.x + 21, this.player.y + 25, 6, 0.2, Math.PI - 0.2);
+        this.ctx.stroke();
+    
+        // ЯРКИЕ ЧАСТИЦЫ
         this.particles.forEach(p => {
             this.ctx.globalAlpha = p.life;
             this.ctx.fillStyle = p.color;
-            this.ctx.fillRect(p.x, p.y, p.size, p.size);
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
         });
         this.ctx.globalAlpha = 1;
+        
+        // ЭФФЕКТ СВЕТА вокруг игрока когда играет
+        if (this.gameState === 'playing') {
+            this.ctx.shadowColor = '#FF4081';
+            this.ctx.shadowBlur = 20;
+            this.ctx.fillStyle = 'rgba(255, 64, 129, 0.1)';
+            this.ctx.beginPath();
+            this.ctx.arc(
+                this.player.x + this.player.width/2, 
+                this.player.y + this.player.height/2, 
+                30, 0, Math.PI * 2
+            );
+            this.ctx.fill();
+            this.ctx.shadowBlur = 0;
+        }
     }
     
     updateScore() {

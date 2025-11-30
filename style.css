@@ -71,13 +71,15 @@ body {
     text-align: center;
     color: white;
     padding: 40px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    background: linear-gradient(135deg, 
+        rgba(255, 107, 107, 0.9) 0%, 
+        rgba(255, 159, 107, 0.9) 50%, 
+        rgba(107, 131, 255, 0.9) 100%);
     border-radius: 25px;
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 3px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 20px 40px rgba(0,0,0,0.3);
     max-width: 90%;
-    animation: fadeIn 0.5s ease-out;
 }
 
 @keyframes fadeIn {
@@ -90,7 +92,7 @@ body {
 }
 
 button {
-    background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+    background: linear-gradient(45deg, #FF6B6B, #FFD166, #4ECDC4);
     border: none;
     padding: 18px 35px;
     margin: 12px;
@@ -100,10 +102,8 @@ button {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
-    border: 2px solid rgba(255,255,255,0.2);
-    position: relative;
-    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+    border: 2px solid rgba(255,255,255,0.3);
 }
 
 button::before {
@@ -122,8 +122,8 @@ button:hover::before {
 }
 
 button:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 35px rgba(255, 107, 107, 0.6);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(255, 107, 107, 0.8);
 }
 
 button:active {
@@ -133,12 +133,11 @@ button:active {
 h1 {
     font-size: 3.5em;
     margin-bottom: 20px;
-    background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #FFD166);
+    background: linear-gradient(45deg, #FFEB3B, #FF4081, #3D5AFE);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    animation: glow 2s ease-in-out infinite alternate;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 @keyframes glow {
