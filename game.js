@@ -165,6 +165,9 @@ class GeometryDash {
     }
     
     setupEventListeners() {
+        console.log('Setting up event listeners...');
+        const startBtn = document.getElementById('startBtn');
+        console.log('Start button:', startBtn);
         this.canvas.addEventListener('click', () => this.jump());
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -175,6 +178,15 @@ class GeometryDash {
             if (e.code === 'Space' || e.key === ' ' || e.code === 'ArrowUp') {
                 this.jump();
             }
+        });
+        if (!startBtn) {
+            console.error('Start button not found!');
+            return;
+        }
+        
+        startBtn.addEventListener('click', () => {
+            console.log('Start button clicked!');
+            this.startGame();
         });
         
         document.getElementById('startBtn').addEventListener('click', () => this.startGame());
@@ -351,6 +363,8 @@ class GeometryDash {
             }
         }
     }
+
+    
     
     createTextEffect(text, x, y, color) {
         this.effects.push({
@@ -538,6 +552,7 @@ class GeometryDash {
             (G > 255 ? 255 : G) * 0x100 +
             (B > 255 ? 255 : B)).toString(16).slice(1);
     }
+    
     
     updateScore() {
         this.scoreElement.textContent = `⭐ Очки: ${this.score}`;
