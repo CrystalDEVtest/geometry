@@ -1,131 +1,98 @@
 class GeometryDash {
     constructor() {
-        console.log('🎮 GeometryDash mobile version');
+        console.log('🎮 Initializing Geometry Dash Mobile');
         
+        // Получаем элементы
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.scoreElement = document.getElementById('score');
         this.highScoreElement = document.getElementById('highScore');
         
         if (!this.canvas) {
-            console.error('❌ Canvas not found!');
+            console.error('❌ Canvas not found');
             return;
         }
         
-        // Сначала настраиваем canvas
+        // Сразу настраиваем размеры
         this.setupCanvas();
         
-        // Затем инициализируем игру
+        // Инициализируем игру
         this.initGame();
         
-        // Настройка управления
-        this.setupMobileControls();
+        // Настраиваем управление
+        this.setupControls();
         
-        this.highScore = localStorage.getItem('geometryDashHighScore') || 0;
-        if (this.highScoreElement) {
-            this.highScoreElement.textContent = `🏆 Рекорд: ${this.highScore}`;
-        }
-        
-        // Кнопки
+        // Настраиваем кнопки
         this.setupButtons();
         
-        console.log('✅ Mobile game ready');
+        console.log('✅ Game ready for mobile');
     }
     
     setupCanvas() {
-        // Устанавливаем размеры canvas
+        // Устанавливаем точные размеры
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         
         console.log('📱 Canvas size:', this.canvas.width, 'x', this.canvas.height);
-        
-        // Обработчик ресайза
-        window.addEventListener('resize', () => {
-            this.canvas.width = window.innerWidth;
-            this.canvas.height = window.innerHeight;
-            this.ground.y = this.canvas.height - 120;
-        });
     }
     
-    setupMobileControls() {
-        console.log('🎯 Setting up mobile controls...');
+    setupControls() {
+        console.log('🎯 Setting up mobile controls');
         
-        // ОБЯЗАТЕЛЬНО: предотвращаем стандартное поведение
-        document.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-        }, { passive: false });
-        
-        document.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-        }, { passive: false });
-        
-        // ТАП ПО ВСЕМУ ЭКРАНУ для прыжка
+        // ПРОСТОЙ ТАП ПО ЭКРАНУ - без preventDefault
         this.canvas.addEventListener('touchstart', (e) => {
+            if (this.gameState === 'playing') {
+                this.jump();
+            }
             e.preventDefault();
-            console.log('📱 Screen tapped - JUMP');
-            this.jump();
-        }, { passive: false });
-        
-        this.canvas.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🖱️ Screen clicked - JUMP');
-            this.jump();
         });
         
-        // Клавиатура для десктопа
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.key === ' ' || e.code === 'ArrowUp') {
-                e.preventDefault();
+        this.canvas.addEventListener('click', (e) => {
+            if (this.gameState === 'playing') {
                 this.jump();
             }
         });
         
-        console.log('✅ Mobile controls ready');
+        // Клавиатура
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && this.gameState === 'playing') {
+                this.jump();
+            }
+        });
     }
     
     setupButtons() {
-        console.log('🔘 Setting up buttons...');
+        console.log('🔘 Setting up buttons');
         
-        // СТАРТ
         const startBtn = document.getElementById('startBtn');
-        if (startBtn) {
-            startBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.startGame();
-            });
-            
-            startBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.startGame();
-            }, { passive: false });
-        }
-        
-        // РЕСТАРТ
         const restartBtn = document.getElementById('restartBtn');
-        if (restartBtn) {
-            restartBtn.addEventListener('click', (e) => {
+        const shareBtn = document.getElementById('shareBtn');
+        
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startGame());
+            startBtn.addEventListener('touchstart', (e) => {
+                this.startGame();
                 e.preventDefault();
-                this.restartGame();
             });
         }
         
-        // ПОДЕЛИТЬСЯ
-        const shareBtn = document.getElementById('shareBtn');
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => this.restartGame());
+        }
+        
         if (shareBtn) {
-            shareBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.shareScore();
-            });
+            shareBtn.addEventListener('click', () => this.shareScore());
         }
     }
     
     initGame() {
-        this.gameState = 'menu';
+        this.gameState = 'menu'; // menu, playing, gameover
         this.score = 0;
         this.gameSpeed = 8;
         this.gravity = 0.9;
         this.jumpForce = -18;
         
+        // Игрок
         this.player = {
             x: 100,
             y: this.canvas.height - 180,
@@ -138,142 +105,105 @@ class GeometryDash {
         
         this.obstacles = [];
         this.obstacleTimer = 0;
-        this.obstacleInterval = 70;
-        this.particles = [];
+        this.obstacleInterval = 80;
         
         this.ground = {
             y: this.canvas.height - 120,
             height: 120
         };
         
-        console.log('🎮 Game initialized');
+        this.particles = [];
+        
+        // Обновляем интерфейс
+        this.updateScore();
     }
     
     startGame() {
-        console.log('🚀 STARTING GAME...');
+        console.log('🚀 Starting game');
         
         if (this.gameState === 'playing') return;
         
         this.gameState = 'playing';
         
-        // Скрываем меню
-        const startScreen = document.getElementById('startScreen');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        
-        if (startScreen) {
-            startScreen.classList.add('hidden');
-            console.log('✅ Start screen hidden');
-        }
-        
-        if (gameOverScreen) {
-            gameOverScreen.classList.add('hidden');
-            console.log('✅ Game over screen hidden');
-        }
-        
-        // Сбрасываем состояние
-        this.initGame();
-        this.gameState = 'playing';
+        // Прячем меню
+        this.hideElement('startScreen');
+        this.hideElement('gameOverScreen');
         
         // Запускаем игровой цикл
-        console.log('🔄 Starting game loop');
         this.gameLoop();
     }
     
-    jump() {
-        if (this.gameState !== 'playing') {
-            console.log('⚠️ Cannot jump - game not playing');
-            return;
+    hideElement(id) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('hidden');
         }
+    }
+    
+    showElement(id) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.remove('hidden');
+        }
+    }
+    
+    jump() {
+        if (this.gameState !== 'playing') return;
         
         if (!this.player.isJumping) {
             this.player.velocityY = this.jumpForce;
             this.player.isJumping = true;
-            console.log('🦘 Player jumped!');
-            
-            // Эффекты прыжка
-            this.createParticleEffect(this.player.x + this.player.width/2, this.player.y + this.player.height, 5, '#FFFFFF');
-        }
-    }
-    
-    createParticleEffect(x, y, count, color) {
-        for (let i = 0; i < count; i++) {
-            this.particles.push({
-                x: x,
-                y: y,
-                size: Math.random() * 3 + 1,
-                speedX: (Math.random() - 0.5) * 6,
-                speedY: (Math.random() - 0.5) * 6,
-                color: color,
-                life: 1,
-                decay: Math.random() * 0.02 + 0.01
-            });
+            console.log('🦘 Jump!');
         }
     }
     
     update() {
         if (this.gameState !== 'playing') return;
         
-        // ФИЗИКА ИГРОКА
+        // Физика игрока
         this.player.velocityY += this.gravity;
         this.player.y += this.player.velocityY;
         
-        // ПРОВЕРКА ЗЕМЛИ
+        // Проверка земли
         if (this.player.y + this.player.height > this.ground.y) {
             this.player.y = this.ground.y - this.player.height;
             this.player.velocityY = 0;
             this.player.isJumping = false;
         }
         
-        // ГЕНЕРАЦИЯ ПРЕПЯТСТВИЙ
+        // Генерация препятствий
         this.obstacleTimer++;
         if (this.obstacleTimer > this.obstacleInterval) {
             this.createObstacle();
             this.obstacleTimer = 0;
-            this.obstacleInterval = Math.max(40, this.obstacleInterval - 0.1);
+            this.obstacleInterval = Math.max(50, this.obstacleInterval - 0.1);
         }
         
-        // ОБНОВЛЕНИЕ ПРЕПЯТСТВИЙ
+        // Обновление препятствий
         for (let i = this.obstacles.length - 1; i >= 0; i--) {
             const obstacle = this.obstacles[i];
             obstacle.x -= this.gameSpeed;
             
-            // СТОЛКНОВЕНИЕ
+            // Столкновение
             if (this.checkCollision(this.player, obstacle)) {
                 this.gameOver();
                 return;
             }
             
-            // УДАЛЕНИЕ ПРЕПЯТСТВИЙ
+            // Удаление вышедших за экран
             if (obstacle.x + obstacle.width < 0) {
                 this.obstacles.splice(i, 1);
                 this.score += 10;
                 this.updateScore();
-                this.createParticleEffect(obstacle.x, obstacle.y, 3, obstacle.color);
             }
         }
         
-        // ОБНОВЛЕНИЕ ЧАСТИЦ
-        this.updateParticles();
-        
-        // УВЕЛИЧЕНИЕ СЛОЖНОСТИ
+        // Увеличение скорости
         this.gameSpeed += 0.001;
     }
     
-    updateParticles() {
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            const p = this.particles[i];
-            p.x += p.speedX;
-            p.y += p.speedY;
-            p.life -= p.decay;
-            
-            if (p.life <= 0) {
-                this.particles.splice(i, 1);
-            }
-        }
-    }
-    
     createObstacle() {
-        const height = Math.random() * 80 + 40;
+        const height = Math.random() * 60 + 40;
         this.obstacles.push({
             x: this.canvas.width,
             y: this.ground.y - height,
@@ -291,29 +221,29 @@ class GeometryDash {
     }
     
     draw() {
-        // ЯРКИЙ ФОН
+        // Очистка
         this.ctx.fillStyle = '#64B5F6';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // СОЛНЦЕ
+        // Солнце
         this.ctx.fillStyle = '#FFEB3B';
         this.ctx.beginPath();
         this.ctx.arc(this.canvas.width - 80, 80, 40, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // ЗЕМЛЯ
+        // Земля
         this.ctx.fillStyle = '#81C784';
         this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
         
-        // ТРАВА
+        // Трава
         this.ctx.fillStyle = '#4CAF50';
         this.ctx.fillRect(0, this.ground.y - 10, this.canvas.width, 10);
         
-        // ПРЕПЯТСТВИЯ
+        // Препятствия
         this.obstacles.forEach(obstacle => {
             this.ctx.fillStyle = obstacle.color;
             
-            // ШИПЫ
+            // Рисуем треугольник (шип)
             this.ctx.beginPath();
             this.ctx.moveTo(obstacle.x, obstacle.y + obstacle.height);
             this.ctx.lineTo(obstacle.x + obstacle.width / 2, obstacle.y);
@@ -322,11 +252,11 @@ class GeometryDash {
             this.ctx.fill();
         });
         
-        // ИГРОК
+        // Игрок
         this.ctx.fillStyle = this.player.color;
         this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
         
-        // ГЛАЗА ИГРОКА
+        // Глаза
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.fillRect(this.player.x + 10, this.player.y + 10, 8, 8);
         this.ctx.fillRect(this.player.x + 25, this.player.y + 10, 8, 8);
@@ -334,14 +264,6 @@ class GeometryDash {
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(this.player.x + 12, this.player.y + 12, 4, 4);
         this.ctx.fillRect(this.player.x + 27, this.player.y + 12, 4, 4);
-        
-        // ЧАСТИЦЫ
-        this.particles.forEach(p => {
-            this.ctx.globalAlpha = p.life;
-            this.ctx.fillStyle = p.color;
-            this.ctx.fillRect(p.x, p.y, p.size, p.size);
-        });
-        this.ctx.globalAlpha = 1;
     }
     
     updateScore() {
@@ -359,34 +281,25 @@ class GeometryDash {
     }
     
     gameOver() {
-        console.log('💀 GAME OVER');
+        console.log('💀 Game Over');
         this.gameState = 'gameover';
         
-        const gameOverScreen = document.getElementById('gameOverScreen');
+        this.showElement('gameOverScreen');
+        
         const finalScore = document.getElementById('finalScore');
-        
-        if (gameOverScreen) {
-            gameOverScreen.classList.remove('hidden');
-            console.log('✅ Game over screen shown');
-        }
-        
         if (finalScore) {
             finalScore.textContent = `⭐ Очки: ${this.score}`;
         }
-        
-        // ЭФФЕКТЫ ПРИ ПРОИГРЫШЕ
-        this.createParticleEffect(this.player.x + this.player.width/2, this.player.y + this.player.height/2, 20, '#FF0000');
     }
     
     restartGame() {
-        console.log('🔄 RESTARTING GAME');
+        console.log('🔄 Restarting game');
         this.initGame();
         this.startGame();
     }
     
     shareScore() {
-        const shareText = `🎮 Я набрал ${this.score} очков в Geometry Dash Mobile!`;
-        alert(shareText);
+        alert(`🎮 Я набрал ${this.score} очков в Geometry Dash!`);
     }
     
     gameLoop() {
@@ -399,20 +312,21 @@ class GeometryDash {
     }
 }
 
-// 🚀 ПРОСТАЯ ИНИЦИАЛИЗАЦИЯ
-function initGame() {
-    console.log('📱 Initializing mobile game...');
-    
-    // Ждем полной загрузки
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            window.game = new GeometryDash();
-        });
-    } else {
+// 🚀 ПРОСТОЙ ЗАПУСК
+console.log('🎮 Geometry Dash Mobile - Loading...');
+
+// Ждем загрузки страницы
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
         window.game = new GeometryDash();
-    }
+    });
+} else {
+    window.game = new GeometryDash();
 }
 
-// ЗАПУСК
-console.log('🎮 Geometry Dash Mobile - Starting...');
-initGame();
+// Глобальная функция для отладки
+window.startGame = function() {
+    if (window.game) {
+        window.game.startGame();
+    }
+};
