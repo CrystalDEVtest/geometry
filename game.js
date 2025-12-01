@@ -1053,10 +1053,7 @@ window.addEventListener('load', function() {
 function createEmergencyJumpButton() {
     setTimeout(() => {
         const emergencyBtn = document.createElement('button');
-        emergencyBtn.id = 'emergencyJump';
-        emergencyBtn.innerHTML = '🚨 ЭКСТРЕННЫЙ ПРЫЖОК 🚨<br><small>Нажми здесь!</small>';
-        
-        document.body.appendChild(emergencyBtn);
+
         
         emergencyBtn.addEventListener('click', function() {
             console.log('🚨 EMERGENCY JUMP ACTIVATED');
@@ -1078,14 +1075,6 @@ function createEmergencyJumpButton() {
                 }
             }
         });
-        
-        // Убираем кнопку через 10 секунд (чтобы не мешала)
-        setTimeout(() => {
-            if (emergencyBtn.parentNode) {
-                emergencyBtn.style.opacity = '0.5';
-                emergencyBtn.innerHTML = 'Прыжок работает?';
-            }
-        }, 10000);
     }, 2000);
 }
 
