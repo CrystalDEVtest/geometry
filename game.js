@@ -26,10 +26,6 @@ class GeometryDash {
         
         setTimeout(() => {
             this.setupEventListeners();
-            // Добавляем кнопку прыжка для мобильных
-            this.setupMobileJumpButton();
-
-            // Обнаруживаем мобильное устройство
             this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }, 100);
         
@@ -65,40 +61,6 @@ class GeometryDash {
         }
     }
 
-    setupMobileJumpButton() {
-        const jumpButton = document.getElementById('jumpButton');
-        
-        if (!jumpButton) {
-            console.log('❌ Jump button not found');
-            return;
-        }
-        
-        // Показываем только на мобильных
-        if (this.isMobile) {
-            jumpButton.style.display = 'flex';
-            
-            // Нажатие на кнопку
-            jumpButton.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.jump();
-                jumpButton.style.transform = 'translateX(-50%) scale(0.9)';
-                jumpButton.style.backgroundColor = 'rgba(255, 50, 50, 0.9)';
-            }, { passive: false });
-            
-            // Отпускание кнопки
-            jumpButton.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                jumpButton.style.transform = 'translateX(-50%) scale(1)';
-                jumpButton.style.backgroundColor = 'rgba(255, 107, 107, 0.8)';
-            }, { passive: false });
-            
-            // На случай клика мышью (для тестирования)
-            jumpButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.jump();
-            });
-        }
-    }
     
     setupMobile() {
         // Предотвращаем масштабирование на мобильных
