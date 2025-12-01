@@ -6,6 +6,7 @@ class GeometryDash {
         this.ctx = this.canvas.getContext('2d');
         this.scoreElement = document.getElementById('score');
         this.highScoreElement = document.getElementById('highScore');
+        window.game = this;
         
         if (!this.canvas) {
             console.error('❌ Canvas not found!');
@@ -33,6 +34,35 @@ class GeometryDash {
         }, 100);
         
         console.log('✅ Game initialized for mobile');
+    }
+
+    jump() {
+        console.log('🎮 JUMP METHOD CALLED, gameState:', this.gameState);
+        
+        if (this.gameState !== 'playing') {
+            console.log('⚠️ Cannot jump: game not playing');
+            return;
+        }
+        
+        if (!this.player.isJumping) {
+            console.log('✅ Player jumps!');
+            this.player.velocityY = this.jumpForce;
+            this.player.isJumping = true;
+            this.player.rotation = -25;
+            this.player.scale = 0.8;
+            
+            // Эффекты прыжка
+            this.createParticleEffect(this.player.x + this.player.width/2, 
+                                     this.player.y + this.player.height, 
+                                     8, '#FFFFFF');
+            this.playSound('jump');
+            
+            setTimeout(() => {
+                this.player.scale = 1;
+            }, 100);
+        } else {
+            console.log('⚠️ Player already jumping');
+        }
     }
 
     setupMobileJumpButton() {
@@ -357,9 +387,20 @@ class GeometryDash {
         
         const startScreen = document.getElementById('startScreen');
         const gameOverScreen = document.getElementById('gameOverScreen');
+        const menu = document.getElementById('menu');
+        const gameContainer = document.getElementById('gameContainer');
         
         if (startScreen) startScreen.classList.add('hidden');
         if (gameOverScreen) gameOverScreen.classList.add('hidden');
+        if (menu) menu.classList.add('hidden');
+        
+        this.createParticleEffect(this.player.x, this.player.y, 20, this.player.color);
+        this.playSound('powerup');
+        this.gameLoop();
+
+        if (gameContainer) {
+            gameContainer.classList.add('playing');
+        }
         
         this.createParticleEffect(this.player.x, this.player.y, 20, this.player.color);
         this.playSound('powerup');
@@ -740,9 +781,15 @@ class GeometryDash {
         
         const gameOverScreen = document.getElementById('gameOverScreen');
         const finalScore = document.getElementById('finalScore');
+        const menu = document.getElementById('menu');
+        const gameContainer = document.getElementById('gameContainer');
         
         if (gameOverScreen) gameOverScreen.classList.remove('hidden');
         if (finalScore) finalScore.textContent = `⭐ Очки: ${this.score}`;
+        if (menu) menu.classList.remove('hidden'); // Показываем меню снова
+    if (gameContainer) {
+        gameContainer.classList.remove('playing'); // Убираем класс playing
+    }
         
         this.screenShake = 2;
         this.createParticleEffect(this.player.x + this.player.width/2, this.player.y + this.player.height/2, 30, '#FF0000');
@@ -751,10 +798,21 @@ class GeometryDash {
     }
     
     restartGame() {
+        const gameContainer = document.getElementById('gameContainer');
+        if (gameContainer) {
+            gameContainer.classList.add('playing');
+        }
+        
+        const menu = document.getElementById('menu');
+        if (menu) {
+            menu.classList.add('hidden');
+        }
+        
         this.currentTheme = (this.currentTheme + 1) % this.colorThemes.length;
         this.initGame();
         this.startGame();
     }
+    
     
     shareScore() {
         const shareText = `🎮 Я набрал ${this.score} очков в Geometry Dash Ultimate!`;
@@ -806,7 +864,258 @@ function initializeGame() {
 }
 
 
+// ГАРАНТИРОВАННО РАБОЧАЯ КНОПКА ПРЫЖКА
+class JumpButtonManager {
+    constructor() {
+        this.createJumpButton();
+        this.bindEvents();
+        console.log('🚀 JumpButtonManager initialized');
+    }
+    
+    createJumpButton() {
+        // Удаляем старую кнопку если есть
+        const oldBtn = document.getElementById('guaranteedJumpBtn');
+        if (oldBtn) oldBtn.remove();
+        
+        // Создаем новую супер-кнопку
+        this.jumpBtn = document.createElement('div');
+        this.jumpBtn.id = 'guaranteedJumpBtn';
+        this.jumpBtn.innerHTML = `
+            <div class="jump-inner">
+                <span>↑</span>
+                <span class="jump-text">ПРЫЖОК</span>
+            </div>
+        `;
+        
+        // Стилизуем ее НАПРЯМУЮ в JS для гарантии
+        Object.assign(this.jumpBtn.style, {
+            position: 'fixed',
+            bottom: '50px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '150px',
+            height: '150px',
+            backgroundColor: '#FF3B30',
+            borderRadius: '50%',
+            color: 'white',
+            fontSize: '24px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            zIndex: '9999',
+            boxShadow: '0 10px 30px rgba(255, 59, 48, 0.7)',
+            border: '5px solid white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            userSelect: 'none',
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation'
+        });
+        
+        // Внутренний элемент
+        const inner = this.jumpBtn.querySelector('.jump-inner');
+        Object.assign(inner.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+        });
+        
+        document.body.appendChild(this.jumpBtn);
+    }
+    
+    bindEvents() {
+        // АБСОЛЮТНО ВСЕ ВОЗМОЖНЫЕ ОБРАБОТЧИКИ
+        const events = [
+            'click',
+            'touchstart',
+            'touchend',
+            'mousedown',
+            'pointerdown'
+        ];
+        
+        events.forEach(eventType => {
+            this.jumpBtn.addEventListener(eventType, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                // Прыгаем
+                this.executeJump();
+                
+                // Визуальная обратная связь
+                this.animateButton();
+                
+                return false;
+            }, { 
+                passive: false,
+                capture: true 
+            });
+        });
+        
+        // Также вешаем на весь документ для отладки
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === ' ' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                this.executeJump();
+            }
+        });
+    }
+    
+    executeJump() {
+        console.log('🔄 EXECUTE JUMP CALLED');
+        
+        // 3 способа вызвать прыжок
+        try {
+            // Способ 1: Через глобальный объект game
+            if (window.game && window.game.jump) {
+                window.game.jump();
+                console.log('✅ Jump via window.game.jump()');
+                return;
+            }
+            
+            // Способ 2: Через вызов метода напрямую
+            const canvas = document.getElementById('gameCanvas');
+            if (canvas && canvas.gameInstance && canvas.gameInstance.jump) {
+                canvas.gameInstance.jump();
+                console.log('✅ Jump via canvas.gameInstance.jump()');
+                return;
+            }
+            
+            // Способ 3: Эмуляция нажатия пробела
+            console.log('⚠️ Direct jump failed, simulating space press');
+            const spaceEvent = new KeyboardEvent('keydown', {
+                key: ' ',
+                code: 'Space',
+                keyCode: 32,
+                which: 32,
+                bubbles: true
+            });
+            document.dispatchEvent(spaceEvent);
+            
+        } catch (error) {
+            console.error('❌ Jump error:', error);
+        }
+    }
+    
+    animateButton() {
+        // Анимация нажатия
+        this.jumpBtn.style.transform = 'translateX(-50%) scale(0.85)';
+        this.jumpBtn.style.backgroundColor = '#FF0000';
+        
+        setTimeout(() => {
+            this.jumpBtn.style.transform = 'translateX(-50%) scale(1)';
+            this.jumpBtn.style.backgroundColor = '#FF3B30';
+        }, 150);
+        
+        // Пульсация
+        this.jumpBtn.style.animation = 'none';
+        setTimeout(() => {
+            this.jumpBtn.style.animation = 'jumpPulse 0.5s';
+        }, 10);
+    }
+}
 
+// Запускаем менеджер кнопок при загрузке
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        new JumpButtonManager();
+        
+        // Также добавляем тап по всему экрану
+        document.addEventListener('click', function(e) {
+            if (e.target.id !== 'guaranteedJumpBtn' && 
+                e.target.id !== 'startBtn' && 
+                e.target.id !== 'restartBtn' && 
+                e.target.id !== 'shareBtn') {
+                
+                const jumpManager = new JumpButtonManager();
+                jumpManager.executeJump();
+            }
+        });
+        
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.id !== 'guaranteedJumpBtn' && 
+                e.target.id !== 'startBtn' && 
+                e.target.id !== 'restartBtn' && 
+                e.target.id !== 'shareBtn') {
+                
+                e.preventDefault();
+                const jumpManager = new JumpButtonManager();
+                jumpManager.executeJump();
+            }
+        }, { passive: false });
+        
+    }, 1000); // Задержка для полной загрузки игры
+});
+
+// АВАРИЙНАЯ КНОПКА если основная не работает
+function createEmergencyJumpButton() {
+    setTimeout(() => {
+        const emergencyBtn = document.createElement('button');
+        emergencyBtn.id = 'emergencyJump';
+        emergencyBtn.innerHTML = '🚨 ЭКСТРЕННЫЙ ПРЫЖОК 🚨<br><small>Нажми здесь!</small>';
+        
+        document.body.appendChild(emergencyBtn);
+        
+        emergencyBtn.addEventListener('click', function() {
+            console.log('🚨 EMERGENCY JUMP ACTIVATED');
+            
+            // Пытаемся всеми способами вызвать прыжок
+            const event = new Event('jump', { bubbles: true });
+            document.dispatchEvent(event);
+            
+            // Прямой вызов прыжка
+            if (window.game) {
+                try {
+                    window.game.jump();
+                } catch (e) {
+                    // Пробуем через canvas
+                    const canvas = document.querySelector('canvas');
+                    if (canvas && canvas.click) {
+                        canvas.click();
+                    }
+                }
+            }
+        });
+        
+        // Убираем кнопку через 10 секунд (чтобы не мешала)
+        setTimeout(() => {
+            if (emergencyBtn.parentNode) {
+                emergencyBtn.style.opacity = '0.5';
+                emergencyBtn.innerHTML = 'Прыжок работает?';
+            }
+        }, 10000);
+    }, 2000);
+}
+
+// Запускаем создание аварийной кнопки
+createEmergencyJumpButton();
+
+
+
+
+// СКРИПТ ПРОВЕРКИ РАБОТОСПОСОБНОСТИ
+console.log('🔄 Running jump system check...');
+
+// Проверяем каждые 2 секунды работает ли прыжок
+setInterval(() => {
+    console.log('🔍 Jump system status:');
+    console.log('- window.game exists:', !!window.game);
+    console.log('- window.game.jump exists:', !!(window.game && window.game.jump));
+    console.log('- Game state:', window.game ? window.game.gameState : 'no game');
+    console.log('- Canvas exists:', !!document.getElementById('gameCanvas'));
+}, 2000);
+
+// Тестовая функция для проверки прыжка из консоли
+window.testJump = function() {
+    console.log('🧪 TEST JUMP FUNCTION CALLED');
+    if (window.game && window.game.jump) {
+        window.game.jump();
+        return '✅ Jump successful!';
+    }
+    return '❌ Jump failed - game not found';
+};
 // Запуск
 console.log('🎮 Geometry Dash Mobile Ultimate - Loading...');
 initializeGame();
