@@ -25,9 +25,49 @@ class GeometryDash {
         
         setTimeout(() => {
             this.setupEventListeners();
+            // Добавляем кнопку прыжка для мобильных
+            this.setupMobileJumpButton();
+
+            // Обнаруживаем мобильное устройство
+            this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }, 100);
         
         console.log('✅ Game initialized for mobile');
+    }
+
+    setupMobileJumpButton() {
+        const jumpButton = document.getElementById('jumpButton');
+        
+        if (!jumpButton) {
+            console.log('❌ Jump button not found');
+            return;
+        }
+        
+        // Показываем только на мобильных
+        if (this.isMobile) {
+            jumpButton.style.display = 'flex';
+            
+            // Нажатие на кнопку
+            jumpButton.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.jump();
+                jumpButton.style.transform = 'translateX(-50%) scale(0.9)';
+                jumpButton.style.backgroundColor = 'rgba(255, 50, 50, 0.9)';
+            }, { passive: false });
+            
+            // Отпускание кнопки
+            jumpButton.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                jumpButton.style.transform = 'translateX(-50%) scale(1)';
+                jumpButton.style.backgroundColor = 'rgba(255, 107, 107, 0.8)';
+            }, { passive: false });
+            
+            // На случай клика мышью (для тестирования)
+            jumpButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.jump();
+            });
+        }
     }
     
     setupMobile() {
@@ -179,7 +219,7 @@ class GeometryDash {
             startBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 this.startGame();
-            });
+            }, { passive: false });
         }
         
         // КНОПКА РЕСТАРТА
@@ -194,15 +234,8 @@ class GeometryDash {
             shareBtn.addEventListener('click', () => this.shareScore());
         }
         
-        // УПРАВЛЕНИЕ ДЛЯ МОБИЛЬНЫХ - вся область экрана
-        this.canvas.addEventListener('click', () => {
-            this.jump();
-        });
-        
-        this.canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.jump();
-        }, { passive: false });
+        // ВАЖНО: Используем делегирование событий для canvas
+        this.setupCanvasControls();
         
         // Клавиатура для десктопа
         document.addEventListener('keydown', (e) => {
@@ -212,9 +245,6 @@ class GeometryDash {
             }
         });
         
-        // Свайпы для мобильных
-        this.setupSwipeControls();
-        
         // Telegram Web App
         if (window.Telegram && Telegram.WebApp) {
             Telegram.WebApp.ready();
@@ -222,6 +252,76 @@ class GeometryDash {
         }
         
         console.log('✅ All event listeners setup complete');
+    }
+    
+    setupCanvasControls() {
+        // Используем один обработчик для всех событий
+        const handleJump = (e) => {
+            // Предотвращаем только для touch событий
+            if (e.type === 'touchstart') {
+                e.preventDefault();
+            }
+            
+            // Прыгаем только если игра активна
+            if (this.gameState === 'playing') {
+                this.jump();
+                
+                // Визуальная обратная связь на мобильных
+                if (this.isMobile) {
+                    this.createTapEffect(e);
+                }
+            }
+            
+            // Также запускаем игру если в меню
+            if (this.gameState === 'menu') {
+                this.startGame();
+            }
+        };
+        
+        // Вешаем обработчики на canvas
+        this.canvas.addEventListener('click', handleJump);
+        this.canvas.addEventListener('touchstart', handleJump, { passive: false });
+        
+        // Также на всю область документа для надежности
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                handleJump(e);
+            }
+        });
+    }
+    
+    createTapEffect(e) {
+        // Получаем координаты тапа
+        let x, y;
+        if (e.touches && e.touches[0]) {
+            x = e.touches[0].clientX;
+            y = e.touches[0].clientY;
+        } else {
+            x = e.clientX;
+            y = e.clientY;
+        }
+        
+        // Создаем эффект круговой волны
+        const effect = document.createElement('div');
+        effect.style.position = 'fixed';
+        effect.style.left = (x - 25) + 'px';
+        effect.style.top = (y - 25) + 'px';
+        effect.style.width = '50px';
+        effect.style.height = '50px';
+        effect.style.borderRadius = '50%';
+        effect.style.backgroundColor = 'rgba(255, 107, 107, 0.3)';
+        effect.style.border = '2px solid rgba(255, 107, 107, 0.5)';
+        effect.style.zIndex = '9998';
+        effect.style.pointerEvents = 'none';
+        effect.style.animation = 'tapEffect 0.5s forwards';
+        
+        document.body.appendChild(effect);
+        
+        // Удаляем эффект после анимации
+        setTimeout(() => {
+            document.body.removeChild(effect);
+        }, 500);
     }
     
     setupSwipeControls() {
@@ -704,6 +804,8 @@ function initializeGame() {
         window.game = new GeometryDash();
     }
 }
+
+
 
 // Запуск
 console.log('🎮 Geometry Dash Mobile Ultimate - Loading...');
