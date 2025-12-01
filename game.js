@@ -1049,38 +1049,6 @@ window.addEventListener('load', function() {
     }, 1000); // Задержка для полной загрузки игры
 });
 
-// АВАРИЙНАЯ КНОПКА если основная не работает
-function createEmergencyJumpButton() {
-    setTimeout(() => {
-        const emergencyBtn = document.createElement('button');
-
-        
-        emergencyBtn.addEventListener('click', function() {
-            console.log('🚨 EMERGENCY JUMP ACTIVATED');
-            
-            // Пытаемся всеми способами вызвать прыжок
-            const event = new Event('jump', { bubbles: true });
-            document.dispatchEvent(event);
-            
-            // Прямой вызов прыжка
-            if (window.game) {
-                try {
-                    window.game.jump();
-                } catch (e) {
-                    // Пробуем через canvas
-                    const canvas = document.querySelector('canvas');
-                    if (canvas && canvas.click) {
-                        canvas.click();
-                    }
-                }
-            }
-        });
-    }, 2000);
-}
-
-// Запускаем создание аварийной кнопки
-createEmergencyJumpButton();
-
 
 
 
