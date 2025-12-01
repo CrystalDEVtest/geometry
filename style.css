@@ -233,23 +233,6 @@ h2 {
 .pulse {
     animation: pulse 2s infinite;
 }
-/* Аварийная кнопка */
-.emergency-btn {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    background: #ff0000 !important;
-    color: white !important;
-    padding: 20px 30px !important;
-    font-size: 24px !important;
-    border: none !important;
-    border-radius: 15px !important;
-    z-index: 9999 !important;
-    cursor: pointer !important;
-    box-shadow: 0 0 30px rgba(255,0,0,0.7) !important;
-    animation: emergencyPulse 1s infinite !important;
-}
 
 @keyframes emergencyPulse {
     0% { transform: translate(-50%, -50%) scale(1); }
@@ -257,29 +240,7 @@ h2 {
     100% { transform: translate(-50%, -50%) scale(1); }
 }
 
-/* Аварийная кнопка */
-.emergency-btn {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    background: #ff0000 !important;
-    color: white !important;
-    padding: 20px 30px !important;
-    font-size: 24px !important;
-    border: none !important;
-    border-radius: 15px !important;
-    z-index: 9999 !important;
-    cursor: pointer !important;
-    box-shadow: 0 0 30px rgba(255,0,0,0.7) !important;
-    animation: emergencyPulse 1s infinite !important;
-}
 
-@keyframes emergencyPulse {
-    0% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.1); }
-    100% { transform: translate(-50%, -50%) scale(1); }
-}
 
 /* Кнопка прыжка для мобильных */
 #jumpButton {
@@ -375,28 +336,4 @@ h2 {
         bottom: 30px !important;
         font-size: 20px !important;
     }
-}
-
-/* Аварийная кнопка, если все остальное не работает */
-#emergencyJump {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    background: #00FF00 !important;
-    color: black !important;
-    padding: 25px 40px !important;
-    font-size: 28px !important;
-    font-weight: bold !important;
-    border: 5px solid black !important;
-    border-radius: 20px !important;
-    z-index: 10000 !important;
-    cursor: pointer !important;
-    box-shadow: 0 0 50px #00FF00 !important;
-    animation: emergencyFlash 1s infinite !important;
-}
-
-@keyframes emergencyFlash {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
 }
